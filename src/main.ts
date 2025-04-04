@@ -4,7 +4,6 @@ import * as dotenv from 'dotenv'
 import { resolve } from 'path';
 
 dotenv.config({ path: resolve(__dirname, '../.env') });
-if (process.env.TEST) console.log('done');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
