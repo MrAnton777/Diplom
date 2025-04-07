@@ -8,7 +8,7 @@ import { SearchUserParams } from './interfaces/interfaces';
 import { createUserDto } from './interfaces/interfaces';
 
 @Injectable()
-export class IUsersService {
+export class UsersService {
     constructor(
         @InjectModel(User.name) private userModel:Model<UserDocument>,
         @InjectConnection() private connection: Connection,
