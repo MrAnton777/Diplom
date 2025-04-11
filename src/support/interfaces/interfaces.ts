@@ -1,6 +1,6 @@
 import { ID } from "src/types/types";
 import { SupportRequestDocument } from "../schemas/request.schema";
-import { MessageDocument } from "../schemas/message.schema";
+import { MessageDocument,Message } from "../schemas/message.schema";
 
 export interface CreateSupportRequestDto {
   user: ID;
@@ -26,9 +26,9 @@ export interface GetChatListParams {
 export interface ISupportRequestService {
     findSupportRequests(params: GetChatListParams): Promise<SupportRequestDocument[]>;
     sendMessage(data: SendMessageDto): Promise<MessageDocument>;
-    getMessages(supportRequest: ID): Promise<MessageDocument[]>;
+    getMessages(supportRequest: ID): Promise<Message[]>;
     subscribe(
-      handler: (supportRequest: SupportRequestDocument, message: MessageDocument) => void
+      handler: (supportRequest: SupportRequestDocument, message: MessageDocument|Message) => void
     ): () => void;
   }
   

@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { SupportService } from './support.service';
+import { SupportRequestService } from './support.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Message, MessageSchema} from './schemas/message.schema';
 import { SupportRequest,SupportRequestSchema } from './schemas/request.schema';
+import { SupportRequestClientService } from './support.service';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
-  imports:[MongooseModule.forFeature([ { name: SupportRequest.name, schema: SupportRequestSchema },
+  imports:[EventEmitterModule.forRoot(),MongooseModule.forFeature([ { name: SupportRequest.name, schema: SupportRequestSchema },
     { name: Message.name, schema: MessageSchema },])],
-  providers: [SupportService]
+  providers: [SupportRequestService,SupportRequestClientService]
 })
 export class SupportModule {}
