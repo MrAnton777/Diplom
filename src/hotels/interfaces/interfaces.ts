@@ -23,14 +23,14 @@ export interface SearchRoomsParams {
 
 export interface IHotelService {
   create(data: Partial<HotelDocument>): Promise<HotelDocument>;
-  findById(id: ID): Promise<HotelDocument|null>;
+  findById(id: ID): Promise<HotelDocument>;
   search(params: SearchHotelParams): Promise<HotelDocument[]>;
-  update(id: ID, data: UpdateHotelParams): Promise<HotelDocument|null>;
+  update(id: ID, data: UpdateHotelParams): Promise<HotelDocument>;
 }
 
 export interface HotelRoomService {
   create(data: Partial<RoomDocument>): Promise<RoomDocument>;
-  findById(id: ID): Promise<RoomDocument|null>;
+  findById(id: ID): Promise<RoomDocument>;
   search(params: SearchRoomsParams): Promise<RoomDocument[]>;
-  update(id: ID, data: Partial<RoomDocument>): Promise<RoomDocument|null>;
+  update(id: ID, data: Partial<RoomDocument>): Promise<RoomDocument>;
 }

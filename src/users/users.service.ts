@@ -4,17 +4,17 @@ import { Model,Connection, HydratedDocument } from 'mongoose';
 import { UserSchema,UserDocument,User } from './schemas/users.schema';
 import * as bcrypt from 'bcrypt';
 import { ID } from 'src/types/types';
-import { SearchUserParams } from './interfaces/interfaces';
+import { IUserService, SearchUserParams } from './interfaces/interfaces';
 import { createUserDto } from './interfaces/interfaces';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements IUserService{
     constructor(
         @InjectModel(User.name) private userModel:Model<UserDocument>,
         @InjectConnection() private connection: Connection,
     ){}
 
-    async create(data: createUserDto): Promise<UserDocument|void>{
+    async create(data: createUserDto): Promise<UserDocument>{
         try{
             let hashedPassword = await bcrypt.hash(data.password,10)
 
@@ -30,18 +30,20 @@ export class UsersService {
             return newUser
         }
         catch(e){
-            console.log(e)
+            throw new Error('Ошибка создания пользователя')
         }
 
     }
 
-    async findById(id: ID): Promise<UserDocument|null>{
+    async findById(id: ID): Promise<UserDocument>{
         let user = await this.userModel.findById(id)
+        if(!user) throw new Error('Пользователь не найден')
         return user
     }
 
-    async findByEmail(email: string): Promise<UserDocument|null>{
+    async findByEmail(email: string): Promise<UserDocument>{
         let user = await this.userModel.findOne({email})
+        if (!user) throw new Error('Пользователь по email не найден')
         return user
     }
 

@@ -9,6 +9,8 @@ import { ID } from 'src/types/types';
 import { ISupportRequestService,ISupportRequestClientService,ISupportRequestEmployeeService } from './interfaces/interfaces';
 import { CreateSupportRequestDto } from './interfaces/interfaces';
 import {MarkMessagesAsReadDto} from './interfaces/interfaces';
+import { Types } from 'mongoose';
+import { error } from 'console';
 
 @Injectable()
 export class SupportRequestService implements ISupportRequestService{
@@ -35,35 +37,35 @@ export class SupportRequestService implements ISupportRequestService{
       }
 
       async sendMessage(data: SendMessageDto): Promise<MessageDocument> {
-        const message = {
+
+        let newMessage = await this.messageModel.create({
           author: data.author,
           sentAt: new Date(),
           text: data.text,
-        };
-
-        let newMessage = await this.messageModel.create(message)
-        await newMessage.save()
+        })
+        
     
         const updated = await this.requestModel.findByIdAndUpdate(
           data.supportRequest,
-          { $push: { messages: newMessage } },
+          { $push: { messages: newMessage._id } },
           { new: true },
         ).exec();
 
         if (!updated) throw new Error('Ошибка отправки собщения')
   
-         this.eventEmitter.emit('message.created', updated, newMessage);
+        this.eventEmitter.emit('message.created', updated, newMessage);
         
         return newMessage;
       }
 
       async getMessages(supportRequest: ID): Promise<Message[]> {
         const sr = await this.requestModel.findById(supportRequest).exec();
-        return sr?.messages || [];
+        let messages = await this.messageModel.find({_id:sr?.messages})
+        return messages;
       }
       
       subscribe(
-        handler: (supportRequest: SupportRequestDocument, message: MessageDocument|Message) => void
+        handler: (supportRequest: SupportRequestDocument, message: MessageDocument) => void
       ): () => void{
         this.handlers.push(handler);
         return () => {
@@ -81,19 +83,16 @@ export class SupportRequestClientService implements ISupportRequestClientService
     private eventEmitter:EventEmitter2){}
 
     async createSupportRequest(data: CreateSupportRequestDto): Promise<SupportRequestDocument> {
-        let message = {
-            author:data.user,
-            text:data.text,
-            sentAt:new Date()
-        } 
-
-        let newMessage = await this.messageModel.create(message)
-        newMessage.save()
+        let newMessage = await this.messageModel.create({
+          author: data.user,
+          sentAt: new Date(),
+          text: data.text,
+        })
 
         let supportRequest = await this.requestModel.create({
             user:data.user,
             createdAt:new Date(),
-            messages:[newMessage],
+            messages:[newMessage._id],
             isActive:true
         })
 
@@ -102,27 +101,84 @@ export class SupportRequestClientService implements ISupportRequestClientService
     }
 
     async markMessagesAsRead(params: MarkMessagesAsReadDto): Promise<void> {
-        await this.requestModel.updateOne(
-          { 
-            _id: params.supportRequest,
-            'messages.author': { $ne: params.user },
-            'messages.readAt': { $exists: false },
-            'messages.sentAt': { $lt: params.createdBefore },
-          },
-          { 
-            $set: { 'messages.$[elem].readAt': new Date() } 
-          },
-          { 
-            arrayFilters: [{ 'elem.readAt': { $exists: false } }],
-          }
-        ).exec();
+      await this.messageModel.updateMany(
+        {
+          _id: { $in: await this.getRequestMessagesIds(params.supportRequest) },
+          author: { $ne: params.user },
+          readAt: { $exists: false },
+          sentAt: { $lt: params.createdBefore }
+        },
+        { $set: { readAt: new Date() } }
+      ).exec();
       }
 
       async getUnreadCount(supportRequest: ID): Promise<number> {
-        const sr = await this.requestModel.findById(supportRequest).exec();
-        if (!sr) throw new Error('Невозможно полусить непрочитанные сообщения')
-        return sr.messages.filter(
-          m => !m.readAt && m.author.toString() !== sr.user.toString()
-        ).length;
+        const messageIds = await this.getRequestMessagesIds(supportRequest);
+        const request = await this.requestModel
+          .findById(supportRequest)
+          .lean()
+          .exec();
+        
+        return await this.messageModel.countDocuments({
+          _id: { $in: messageIds },
+          author: { $ne: request?.user },
+          readAt: { $exists: false }
+        }).exec();
       }
+
+      private async getRequestMessagesIds(reqId:ID):Promise<Types.ObjectId[]>{
+        let request = await this.requestModel.findById(reqId).exec()
+        if (!request) throw new Error('Запрос не найден')
+        return request.messages
+      }    
+}
+
+
+@Injectable()
+export class SupportRequestEmployeeService implements ISupportRequestEmployeeService{
+  constructor(
+    @InjectModel(SupportRequest.name) private requestModel:Model<SupportRequestDocument>,
+    @InjectModel(Message.name) private messageModel:Model<MessageDocument>
+  ){}
+
+  async markMessagesAsRead(params: MarkMessagesAsReadDto){
+    await this.messageModel.updateMany(
+      {
+        _id: { $in: await this.getRequestMessagesIds(params.supportRequest) },
+        author: { $eq: params.user },
+        readAt: { $exists: false },
+        sentAt: { $lt: params.createdBefore }
+      },
+      { $set: { readAt: new Date() } }
+    ).exec();
+  }
+
+  async getUnreadCount(supportRequest: ID): Promise<number> {
+    const messageIds = await this.getRequestMessagesIds(supportRequest);
+    const request = await this.requestModel
+      .findById(supportRequest)
+      .lean()
+      .exec();
+    
+    return await this.messageModel.countDocuments({
+      _id: { $in: messageIds },
+      author: { $eq: request?.user },
+      readAt: { $exists: false }
+    }).exec();
+  }
+
+  async closeRequest(supportRequest: ID): Promise<void> {
+    let updatedRequest = await this.requestModel.findByIdAndUpdate(
+      supportRequest,
+      { isActive: false },
+    ).exec();
+    if (!updatedRequest) throw new Error('Не удалось закрыть запрос')
+    
+  }
+
+  private async getRequestMessagesIds(reqId:ID):Promise<Types.ObjectId[]>{
+    let request = await this.requestModel.findById(reqId).exec()
+    if (!request) throw new Error('Запрос не найден')
+    return request.messages
+  }   
 }

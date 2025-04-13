@@ -28,7 +28,7 @@ export interface ISupportRequestService {
     sendMessage(data: SendMessageDto): Promise<MessageDocument>;
     getMessages(supportRequest: ID): Promise<Message[]>;
     subscribe(
-      handler: (supportRequest: SupportRequestDocument, message: MessageDocument|Message) => void
+      handler: (supportRequest: SupportRequestDocument, message: MessageDocument) => void
     ): () => void;
   }
   

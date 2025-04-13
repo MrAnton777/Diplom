@@ -12,8 +12,8 @@ export class SupportRequest{
     @Prop({required:true})
     public createdAt: Date
 
-    @Prop({ type: [MessageSchema], default: [] })
-    public messages: Message[]
+    @Prop({ default: [] })
+    public messages: Types.ObjectId[]
 
     @Prop({ default: true })
     isActive: boolean;
