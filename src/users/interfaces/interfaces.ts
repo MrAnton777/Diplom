@@ -13,7 +13,7 @@ export interface createUserDto{
   email: string,
   password: string,
   name: string,
-  contactPhone: string,
+  contactPhone?: string,
   role?: string
 }
 
