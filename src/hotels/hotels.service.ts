@@ -60,7 +60,7 @@ export class RoomService implements HotelRoomService{
       query.isEnabled = isEnabled;
     }
 
-    return this.roomModel
+    return await this.roomModel
       .find(query)
       .skip(offset)
       .limit(limit)

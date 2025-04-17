@@ -14,7 +14,7 @@ export class Hotel{
     @Prop({required:true})
     public createdAt:Date
 
-    @Prop({required:true})
+    @Prop()
     public updatedAt:Date
 }
 
