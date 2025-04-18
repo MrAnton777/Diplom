@@ -2,8 +2,7 @@ export interface signUpDto{
     email:string,
     password:string,
     name:string,
-    contactPhone?:string,
-    role:string
+    contactPhone?:string
 }
 
 export interface signInDto{

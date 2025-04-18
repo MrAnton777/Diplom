@@ -36,9 +36,9 @@ export class HotelsController {
             return await this.roomService.findById(id)
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post('admin/hotels/')//2.1.3
     async addHotel(data:createHotelDto , @CurrentUser() user:User, @Res() res:Response){
-        if(!user) return res.status(401).json({error:401,message:'Пользавотель не аутентифицирован'});
         if (user.role != 'admin') return res.status(403).json({error:403,message:'У вас нет прав'})
 
         data = {...data,createdAt:new Date()}

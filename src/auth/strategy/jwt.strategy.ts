@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new Error('Secret key not found')
     }
     super({
-        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: (req) => req.cookies?.jwt,
         secretOrKey:key,
       });
   }
