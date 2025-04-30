@@ -10,3 +10,7 @@ export interface createRoomDto{
     description:string,
     hotelId:Types.ObjectId
 }
+
+export interface updateRoomDto extends createRoomDto{
+    existingImages?:string[]
+}

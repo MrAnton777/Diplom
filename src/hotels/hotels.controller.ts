@@ -9,7 +9,7 @@ import { CurrentUser } from 'src/auth/dto/user.decorator';
 import { User } from 'src/users/schemas/users.schema';
 import { RoomService,HotelService } from './hotels.service';
 import { ID } from 'src/types/types';
-import { createHotelDto, createRoomDto } from './interfaces/dto';
+import { createHotelDto, createRoomDto, updateRoomDto } from './interfaces/dto';
 import { JwtAuthGuard } from 'src/auth/guard/jwt.guard';
 import { error, time } from 'console';
 import { Response } from 'express';
@@ -104,4 +104,44 @@ export class HotelsController {
         return await this.roomService.create(data)
     }
 
+
+    @UseGuards(JwtAuthGuard)
+    @Post('admin/hotel-rooms/:id') //2.1.7
+    @UseInterceptors(FilesInterceptor('images', 10, {
+        storage: diskStorage({
+          destination: './uploads',
+          filename: (req, file, cb) => {
+            const filename: string = uuidv4();
+            const extension: string = path.parse(file.originalname).ext;
+            cb(null, `${filename}${extension}`);
+          }
+        })
+      }))
+      async updateRoom(
+        @Param() id:ID,
+        @Body() data:updateRoomDto,
+        @Res() res:Response,
+        @CurrentUser() user:User,
+        @UploadedFiles() images:Express.Multer.File[]
+      ){
+        if (user.role != 'admin') return res.status(403).json({error:403,message:'У вас нет прав'});
+
+        let existingImages = data.existingImages || [];
+        let newImagePaths = images?.map(file => file.filename) || [];
+        let allImages = [...existingImages,...newImagePaths];
+
+        let result = await this.roomService.update(id,{
+            hotel:data.hotelId,
+            desc:data.description,
+            images:allImages,
+            updatedAt:new Date()
+        })
+
+        return {
+            id:result._id,
+            desciption:result.desc,
+            images:result.images,
+            hotel:result.hotel
+        }
+      }
 } 
