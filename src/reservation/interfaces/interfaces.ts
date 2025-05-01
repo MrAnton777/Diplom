@@ -11,8 +11,8 @@ export interface ReservationDto {
   
 export interface ReservationSearchOptions {
     userId: ID;
-    dateStart: Date;
-    dateEnd: Date;
+    dateStart?: Date;
+    dateEnd?: Date;
 }
 export interface IReservation {
     addReservation(data: ReservationDto): Promise<ReservationDocument>;
@@ -20,4 +20,10 @@ export interface IReservation {
     getReservations(
       filter: ReservationSearchOptions
     ): Promise<Array<ReservationDocument>>;
+}
+
+export interface createReservationDto{
+  hotelRoom:ID,
+  startDate:Date,
+  endDate:Date
 }
