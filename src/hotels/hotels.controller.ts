@@ -45,12 +45,13 @@ export class HotelsController {
 
     @UseGuards(JwtAuthGuard)
     @Post('admin/hotels/')//2.1.3
-    async addHotel(data:createHotelDto , @CurrentUser() user:User, @Res() res:Response){
+    async addHotel(@Body() data:createHotelDto , @CurrentUser() user:User, @Res() res:Response){
         if (user.role != 'admin') return res.status(403).json({error:403,message:'У вас нет прав'})
 
         data = {...data,createdAt:new Date()}
 
-        return await this.hotelService.create(data)
+        let result =  await this.hotelService.create(data)
+        res.send(result)
     }
 
     @UseGuards(JwtAuthGuard)
@@ -58,21 +59,22 @@ export class HotelsController {
     async getHotels(@Query() params:SearchHotelParams,@CurrentUser() user:User,@Res() res:Response){
         if (user.role != 'admin') return res.status(403).json({error:403,message:'У вас нет прав'});
 
-        return await this.hotelService.search(params)
+        let result =  await this.hotelService.search(params)
+        res.send(result)
     }
 
     @UseGuards(JwtAuthGuard)
     @Put('admin/hotels/:id') //2.1.5
-    async updateHotel(@Param() id:ID,@Body() data:UpdateHotelParams,@Res() res:Response,@CurrentUser() user:User){
+    async updateHotel(@Param('id') id:ID,@Body() data:UpdateHotelParams,@Res() res:Response,@CurrentUser() user:User){
         if (user.role != 'admin') return res.status(403).json({error:403,message:'У вас нет прав'});
 
         let hotel =  await this.hotelService.update(id,data)
 
-        return {
+        res.json({
             id:hotel._id,
             title:hotel.title,
             desc:hotel.desc
-        }
+        })
     }
 
     @UseGuards(JwtAuthGuard)
@@ -101,7 +103,8 @@ export class HotelsController {
             isEnabled:true
         } as Room
 
-        return await this.roomService.create(data)
+        let result =  await this.roomService.create(data)
+        res.send(result)
     }
 
 
@@ -137,11 +140,11 @@ export class HotelsController {
             updatedAt:new Date()
         })
 
-        return {
+        res.json({
             id:result._id,
             desciption:result.desc,
             images:result.images,
             hotel:result.hotel
-        }
+        })
       }
 } 
