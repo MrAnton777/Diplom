@@ -38,7 +38,7 @@ export class HotelsController {
     }
 
     @Get('common/hotel-rooms/:id')//2.1.2
-    async getRoomById(@Param() id:ID){
+    async getRoomById(@Param('id') id:ID){
         if (!id) throw new Error('Не предоставлен id номера')
             return await this.roomService.findById(id)
     }
@@ -121,7 +121,7 @@ export class HotelsController {
         })
       }))
       async updateRoom(
-        @Param() id:ID,
+        @Param('id') id:ID,
         @Body() data:updateRoomDto,
         @Res() res:Response,
         @CurrentUser() user:User,
