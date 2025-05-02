@@ -42,7 +42,7 @@ export class RoomService implements HotelRoomService{
   constructor(@InjectModel(Room.name) private roomModel:Model<RoomDocument>){}
 
   async create(data: Partial<RoomDocument>): Promise<RoomDocument> {
-    const hotel = new this.roomModel(data);
+    const hotel = await this.roomModel.create(data);
     return hotel.save();
   }
 
@@ -54,8 +54,9 @@ export class RoomService implements HotelRoomService{
 
   async search(params: SearchRoomsParams): Promise<RoomDocument[]> {
     const { limit, offset, hotel, isEnabled } = params;
-    const query: any = { hotel };
+    const query: any = {};
     
+    if (hotel){query.hotel = hotel};
     if (isEnabled) {
       query.isEnabled = isEnabled;
     }
