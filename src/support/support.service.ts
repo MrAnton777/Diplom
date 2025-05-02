@@ -31,6 +31,8 @@ export class SupportRequestService implements ISupportRequestService{
     async findSupportRequests(params: GetChatListParams): Promise<SupportRequestDocument[]> {
         const query: any = {};
         if (params.user) query.user = params.user;
+        if (params.limit) query.limit = params.limit;
+        if (params.offset) query.offset = params.offset
         query.isActive = params.isActive
         
         return await this.requestModel.find(query).exec();
@@ -58,7 +60,7 @@ export class SupportRequestService implements ISupportRequestService{
         return newMessage;
       }
 
-      async getMessages(supportRequest: ID): Promise<Message[]> {
+      async getMessages(supportRequest: ID): Promise<MessageDocument[]> {
         const sr = await this.requestModel.findById(supportRequest).exec();
         let messages = await this.messageModel.find({_id:sr?.messages})
         return messages;
@@ -130,7 +132,13 @@ export class SupportRequestClientService implements ISupportRequestClientService
         let request = await this.requestModel.findById(reqId).exec()
         if (!request) throw new Error('Запрос не найден')
         return request.messages
-      }    
+      }
+      
+      async checkNewMessages(reqId:ID):Promise<boolean>{
+        let result = await this.getUnreadCount(reqId)
+        if(result> 0) return true;
+        else return false;
+      }
 }
 
 
@@ -180,5 +188,11 @@ export class SupportRequestEmployeeService implements ISupportRequestEmployeeSer
     let request = await this.requestModel.findById(reqId).exec()
     if (!request) throw new Error('Запрос не найден')
     return request.messages
-  }   
+  }
+  
+  async checkNewMessages(reqId:ID):Promise<boolean>{
+    let result = await this.getUnreadCount(reqId)
+    if(result> 0) return true;
+    else return false;
+  }
 }

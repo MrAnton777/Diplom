@@ -6,10 +6,11 @@ import { SupportRequest,SupportRequestSchema } from './schemas/request.schema';
 import { SupportRequestClientService, SupportRequestEmployeeService } from './support.service';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SupportController } from './support.controller';
+import { User, UserSchema } from 'src/users/schemas/users.schema';
 
 @Module({
   imports:[EventEmitterModule.forRoot(),MongooseModule.forFeature([ { name: SupportRequest.name, schema: SupportRequestSchema },
-    { name: Message.name, schema: MessageSchema },])],
+    { name: Message.name, schema: MessageSchema },{name:User.name,schema:UserSchema}])],
   providers: [SupportRequestService,SupportRequestClientService,SupportRequestEmployeeService],
   controllers: [SupportController]
 })
