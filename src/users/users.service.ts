@@ -18,13 +18,16 @@ export class UsersService implements IUserService{
         try{
             let hashedPassword = await bcrypt.hash(data.password,10)
 
-            let newUser = await this.userModel.create({
+            let payload:any = {
                 email:data.email,
                 passwordHash:hashedPassword,
                 name:data.name,
                 contactPhone:data.contactPhone,
+                role:data.role
                 
-            })
+            }
+
+            let newUser = await this.userModel.create(payload)
 
             await newUser.save()
             return newUser

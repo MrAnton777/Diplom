@@ -14,7 +14,7 @@ export interface createUserDto{
   password: string,
   name: string,
   contactPhone?: string,
-  role?: string
+  role: string
 }
 
 export interface IUserService {
