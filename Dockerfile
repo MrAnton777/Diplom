@@ -11,5 +11,6 @@ COPY eslint.config.mjs ./
 COPY .prettierrc ./
 COPY test/ ./test
 COPY src/ ./src
+COPY uploads/ ./uploads
 
 CMD ["npm","run","start"]
