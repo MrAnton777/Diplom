@@ -10,20 +10,22 @@ import { CurrentUser } from 'src/auth/dto/user.decorator';
 import { User, UserDocument } from 'src/users/schemas/users.schema';
 import { Response } from 'express';
 import { ID } from 'src/types/types';
+import { Hotel, HotelDocument } from 'src/hotels/schemas/hotel.schema';
 
 @Controller('api')
 export class ReservationController {
     constructor(
         @InjectModel(Reservation.name) private reservationModel:Model<ReservationDocument>,
         @InjectModel(Room.name) private roomModel:Model<RoomDocument>,
+        @InjectModel(Hotel.name) private hotelModel:Model<HotelDocument>,
         private reservationService:ReservationService
     ){}
 
     @UseGuards(JwtAuthGuard)
-    @Post('client/reservations') //2.2.1
+    @Post('client/reservations') //2.2.1 !
     async createReservation(
         @Body() data:createReservationDto,
-        @CurrentUser() user:UserDocument,
+        @CurrentUser() user,
         @Res() res:Response
     ){
         if (user.role != 'client') return res.status(403).send('Вы не клиент');
@@ -31,7 +33,7 @@ export class ReservationController {
         let room = await this.roomModel.findById(data.hotelRoom).exec()
         if(!room) return res.status(400).send('Room not found')
         
-        let userId:ID = user._id as ID
+        let userId:ID = user.userId as ID
 
         let newReservation = await this.reservationService.addReservation({
             userId:userId,
@@ -50,48 +52,84 @@ export class ReservationController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Get('client/reservations') //2.2.2
-    async getClientReservations(@CurrentUser() user:UserDocument,@Res() res:Response){
+    @Get('client/reservations') //2.2.2 !
+    async getClientReservations(@CurrentUser() user,@Res() res:Response){
         if (user.role != 'client') return res.status(403).send('Вы не клиент');
 
-        let userId:ID = user._id as ID
+        let userId:ID = user.userId as ID
 
         let reservations = await this.reservationService.getReservations({userId:userId})
 
-        res.send(reservations)
+        let response = await Promise.all(reservations.map(async (reserv)=>{
+            let hotel = await this.hotelModel.findById(reserv.hotelId);
+            let room = await this.roomModel.findById(reserv.roomId);
+
+            return {
+                startDate:reserv.dateStart,
+                endDate:reserv.dateEnd,
+                hotelRoom:{
+                    description:room?.desc,
+                    images:room?.images,
+                },
+                hotel:{
+                    title:hotel?.title,
+                    description:hotel?.desc
+                }
+            }
+        }))
+        
+        res.send(response)
     }
 
     @UseGuards(JwtAuthGuard)
-    @Delete('client/reservations/:id') //2.2.3
-    async deleteClientrReservation(@Param() reservationId:ID,@CurrentUser() user:UserDocument,@Res() res:Response){
+    @Delete('client/reservations/:id') //2.2.3 !
+    async deleteClientrReservation(@Param('id') reservationId:ID,@CurrentUser() user,@Res() res:Response){
         if (user.role != 'client') return res.status(403).send('Вы не клиент');
         let reservation = await this.reservationModel.findById(reservationId).exec()
         if(!reservation) return res.status(400).send('Reservation not found');
-        if (reservation.userId != user._id) return res.status(403).send('Forbidden for you');
+        if (reservation.userId != user.userId) return res.status(403).send('Forbidden for you');
 
         await this.reservationModel.deleteOne({_id:reservationId})
-
+        res.send('ok')
     }
 
     @UseGuards(JwtAuthGuard)
-    @Get('manager/reservations/:userId') //2.2.4
+    @Get('manager/reservations/:userId') //2.2.4 !
     async getReservations(
-        @Param() userId:ID,
-        @CurrentUser() user:UserDocument,
+        @Param('userId') userId:ID,
+        @CurrentUser() user,
         @Res() res:Response
     ){
         if (user.role != 'manager') return res.status(403).send('Вы не менеджер');
 
         let reservations = await this.reservationService.getReservations({userId:userId})
 
-        res.send(reservations)
+        let response = await Promise.all(reservations.map(async (reserv)=>{
+            let hotel = await this.hotelModel.findById(reserv.hotelId);
+            let room = await this.roomModel.findById(reserv.roomId);
+
+            return {
+                startDate:reserv.dateStart,
+                endDate:reserv.dateEnd,
+                hotelRoom:{
+                    description:room?.desc,
+                    images:room?.images,
+                },
+                hotel:{
+                    title:hotel?.title,
+                    description:hotel?.desc
+                }
+            }
+        }))
+
+        res.send(response)
     }
 
     @UseGuards(JwtAuthGuard)
-    @Delete('manager/reservations/:id') //2.2.5 
+    @Delete('manager/reservations/:id') //2.2.5 !
     async deleteReservation(
-        @Param() id:ID,
-        @CurrentUser() user:UserDocument,
+        @Param('id') id:ID,
+        @CurrentUser() user,
         @Res() res:Response
     ){
         if (user.role != 'manager') return res.status(403).send('Вы не менеджер');
@@ -100,5 +138,6 @@ export class ReservationController {
         if(!reservation) return res.status(400).send('Reservation not found')
 
         await this.reservationModel.deleteOne({_id:id})
+        res.send('ok')
     }
 }
