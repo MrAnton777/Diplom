@@ -16,7 +16,7 @@ export class UsersController {
     ){}
 
     @UseGuards(JwtAuthGuard)
-    @Post('admin/users/') //2.4.1
+    @Post('admin/users/') //2.4.1 !
     async createUserAsAdmin(
         @Body() data:createUserDto,
         @CurrentUser() user:UserDocument,
@@ -38,7 +38,7 @@ export class UsersController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Get('admin/users/') //2.4.2 admin
+    @Get('admin/users/') //2.4.2 admin !
     async getUsersAdmin(
         @Query() params:SearchUserParams,
         @CurrentUser() user:UserDocument,
@@ -47,12 +47,23 @@ export class UsersController {
         if(user.role != 'admin') return res.status(403).send('Вы не админ');
 
         let result = await this.userService.findAll(params);
+        let response:object[] = [];
 
-        res.send(result)
+        result.forEach(user=>{
+            response.push({
+                id:user._id,
+                email:user.email,
+                name:user.name,
+                contactPhone:user.contactPhone,
+                role:user.role
+            })
+        })
+
+        res.send(response)
     }
 
     @UseGuards(JwtAuthGuard)
-    @Get('manager/users/') //2.4.2 manager
+    @Get('manager/users/') //2.4.2 manager !
     async getUsersManager(
         @Query() params:SearchUserParams,
         @CurrentUser() user:UserDocument,
@@ -61,8 +72,18 @@ export class UsersController {
         if(user.role != 'manager') return res.status(403).send('Вы не менеджер');
 
         let result = await this.userService.findAll(params);
+        let response:object[] = [];
 
-        res.send(result)
+        result.forEach(user=>{
+            response.push({
+                id:user._id,
+                email:user.email,
+                name:user.name,
+                contactPhone:user.contactPhone
+            })
+        })
+
+        res.send(response)
     }
 
     
