@@ -74,10 +74,14 @@ export class HotelsController {
 
     @UseGuards(JwtAuthGuard)
     @Post('admin/hotels/')//2.1.3 !
-    async addHotel(@Body() data:createHotelDto , @CurrentUser() user:User, @Res() res:Response){
+    async addHotel(@Body() dataDto:createHotelDto , @CurrentUser() user:User, @Res() res:Response){
         if (user.role != 'admin') return res.status(403).json({error:403,message:'У вас нет прав'})
 
-        data = {...data,createdAt:new Date()}
+        let data = {
+          title:dataDto.title,
+          desc:dataDto.description,
+          createdAt:new Date(),
+        }
 
         let result =  await this.hotelService.create(data)
         res.json({

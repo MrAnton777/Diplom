@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 
 export interface createHotelDto{
     title: string;
-    desc: string;
+    description: string;
     createdAt?:Date
 }
 

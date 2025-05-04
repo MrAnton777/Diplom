@@ -28,7 +28,11 @@ export class HotelService implements IHotelService{
         return await this.hotelModel.find(query).skip(offset).limit(limit).exec();
       }
 
-      async update(id: ID, data: UpdateHotelParams): Promise<HotelDocument> {
+      async update(id: ID, dataDto: UpdateHotelParams): Promise<HotelDocument> {
+        let data = {
+          title:dataDto.title,
+          desc:dataDto.description
+        }
         let updatedHotel = await this.hotelModel.findByIdAndUpdate(id, data, { new: true }).exec();
         if (!updatedHotel) throw new Error('Ошибка обновления отеля')
         return updatedHotel
