@@ -19,7 +19,13 @@ export interface MarkMessagesAsReadDto {
 }
 
 export interface GetChatListParams {
-  user: ID | null;
+  user?: ID | null;
+  isActive: boolean;
+  limit?:number;
+  offset?:number;
+}
+
+export interface GetChatListParamsSearch {
   isActive: boolean;
   limit?:number;
   offset?:number;

@@ -5,7 +5,7 @@ export type MessageDocument = Message & Document;
 
 @Schema()
 export class Message{
-    @Prop({required:true,unique:true})
+    @Prop({required:true})
     public author:Types.ObjectId
 
     @Prop({required:true})

@@ -30,12 +30,13 @@ export class SupportRequestService implements ISupportRequestService{
 
     async findSupportRequests(params: GetChatListParams): Promise<SupportRequestDocument[]> {
         const query: any = {};
+        let limit,offset;
         if (params.user) query.user = params.user;
-        if (params.limit) query.limit = params.limit;
-        if (params.offset) query.offset = params.offset
-        query.isActive = params.isActive
+        if (params.limit) limit = params.limit;
+        if (params.offset) offset = params.offset
+        if (params.isActive) query.isActive = params.isActive
         
-        return await this.requestModel.find(query).exec();
+        return await this.requestModel.find(query).limit(limit).skip(offset).exec();
       }
 
       async sendMessage(data: SendMessageDto): Promise<MessageDocument> {
