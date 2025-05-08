@@ -18,7 +18,7 @@ dotenv.config()
   UsersModule,
   PassportModule,
   JwtModule.register({
-    secret:process.env.SECRET,
+    secret:process.env.SECRET || 'jwt-secret123',
     signOptions: { expiresIn: '5h' }
   }),MongooseModule.forFeature([{name:User.name,schema:UserSchema}])
 ],

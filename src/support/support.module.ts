@@ -7,11 +7,13 @@ import { SupportRequestClientService, SupportRequestEmployeeService } from './su
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SupportController } from './support.controller';
 import { User, UserSchema } from 'src/users/schemas/users.schema';
+import { SupportGateway } from './support.gateway';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 
 @Module({
-  imports:[EventEmitterModule.forRoot(),MongooseModule.forFeature([ { name: SupportRequest.name, schema: SupportRequestSchema },
+  imports:[EventEmitterModule.forRoot(),JwtModule,MongooseModule.forFeature([ { name: SupportRequest.name, schema: SupportRequestSchema },
     { name: Message.name, schema: MessageSchema },{name:User.name,schema:UserSchema}])],
-  providers: [SupportRequestService,SupportRequestClientService,SupportRequestEmployeeService],
+  providers: [SupportRequestService,SupportRequestClientService,SupportRequestEmployeeService, SupportGateway,JwtService],
   controllers: [SupportController]
 })
 export class SupportModule {}

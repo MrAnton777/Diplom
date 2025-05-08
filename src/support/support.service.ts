@@ -56,7 +56,7 @@ export class SupportRequestService implements ISupportRequestService{
 
         if (!updated) throw new Error('Ошибка отправки собщения')
   
-        this.eventEmitter.emit('message.created', updated, newMessage);
+        this.emitNewMessage(updated,newMessage)
         
         return newMessage;
       }
@@ -75,7 +75,10 @@ export class SupportRequestService implements ISupportRequestService{
           this.handlers = this.handlers.filter(h => h !== handler);
         };
       }
-      
+
+      emitNewMessage(supportRequest: SupportRequestDocument, message: MessageDocument) {
+    this.handlers.forEach(handler => handler(supportRequest, message));
+  }      
 }
 
 
